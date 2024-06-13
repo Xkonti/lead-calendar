@@ -4,13 +4,22 @@ public class Planner
 {
     public int WeeksCount { get; init; }
     public int WeeksPerAgent { get; init; }
-    public Agent[] Agents { get; init; }
-    public Combination<int>[][] WeekCombinations { get; init; }
     
-    private List<FormedPlan> _validPlans = [];
-    private List<FormedPlan> _conflictingPlans = [];
-    private List<PlanInProgress> _plansInProgress = [];
-    private List<PlanInProgress> _conflictingPlansInProgress = [];
+    public string[] AgentNames { get; init; }
+    
+    public AgentStateCombinations[] CombinationsPerAgent { get; init; }
+    
+    /// <summary>
+    /// Indexes of the first conflicting combination for each agent.
+    /// This is used to skip conflicting combinations when at least one valid plan has been found.
+    /// </summary>
+    public int[] FirstConflictIndexes { get; init; }
+
+    private List<PendingPlan> _pendingValidPlans = [];
+    private List<PendingPlan> _pendingConflictingPlans = [];
+    
+    private List<PendingPlan> _validPlans = [];
+    private List<PendingPlan> _conflictingPlans = [];
     
     // Stats
     private int _totalPlansCount = 0;
@@ -18,45 +27,62 @@ public class Planner
     
     public Planner(
         int weeksCount, int weeksPerAgent,
-        Agent[] agents, Combination<int>[][] weekCombinations,
-        PlanInProgress initialPlan)
+        string[] agentNames,
+        AgentStateCombinations[] combinationsPerAgent,
+        int[] firstConflictIndexes
+        )
     {
+        // Verify agent state combinations
+        
+        if (agentNames.Length != combinationsPerAgent.Length)
+        {
+            throw new ArgumentException("AgentNames and StateCombinations must have the same length");
+        }
+        
+        foreach (var agentStateCombinations in combinationsPerAgent)
+        {
+            if (agentStateCombinations.Combinations.Length == 0)
+                throw new ArgumentException("Each agent has to have at least one state combination available");
+
+            if (agentStateCombinations.Combinations.Any(combination => combination.WeekSelections.Length != weeksCount + 1))
+                throw new ArgumentException("Each combination must have a valid number of weeks");
+        }
+        
+        if (agentNames.Length != firstConflictIndexes.Length)
+            throw new ArgumentException("AgentNames and FirstConflictIndexes must have the same length");
+        
+        // Save data
+        
         WeeksCount = weeksCount;
         WeeksPerAgent = weeksPerAgent;
-        Agents = agents;
-        WeekCombinations = weekCombinations;
-        _plansInProgress.Add(initialPlan);
+        AgentNames = agentNames;
+        CombinationsPerAgent = combinationsPerAgent;
+        FirstConflictIndexes = firstConflictIndexes;
     }
     
-    public PlanInProgress GetCurrentPlan()
-    {
-        return _plansInProgress[0];
-    }
-    
-    public void AddPlan(FormedPlan plan)
-    {
-        _validPlans.Add(plan);
-        _totalPlansCount++;
-    }
 
     public void PrintStats()
     {
         Console.WriteLine($"TOT: {_totalPlansCount} INV: {_invalidPlansCount} CONF: {_conflictingPlans.Count} VAL: {_validPlans.Count}");
-        Console.WriteLine($"In progress: {_plansInProgress.Count} Conflicting: {_conflictingPlansInProgress.Count}");
+        Console.WriteLine($"In progress: {_pendingValidPlans.Count} Conflicting: {_pendingConflictingPlans.Count}");
     }
 
     public bool CheckHasUnavoidableConflicts()
     {
         var conflictingAgentNames = new List<string>();
-        var plan = GetCurrentPlan();
-        for (var agentId = 0; agentId < WeekCombinations.Length; agentId++)
+        
+        for (var agentId = 0; agentId < AgentNames.Length; agentId++)
         {
-            var weekCombinations = WeekCombinations[agentId];
-            var state = plan.AgentStates[agentId];
-            var isConflict = weekCombinations.All(combination => state.Apply(combination).GetStatus(this) == AgentStateStatus.ValidWithConflicts);
-            if (isConflict)
+            Console.WriteLine($"Checking agent {AgentNames[agentId]}");
+            var agentStateCombinations = CombinationsPerAgent[agentId];
+            foreach (var combination in agentStateCombinations.Combinations)
             {
-                conflictingAgentNames.Add(Agents[agentId].Name);
+                Console.WriteLine($" - Has combination: {combination}");
+            }
+            var hasConflictsOnly = agentStateCombinations.Combinations.All(combination => combination.HasConflict);
+            if (hasConflictsOnly)
+            {
+                conflictingAgentNames.Add(AgentNames[agentId]);
             }
         }
 

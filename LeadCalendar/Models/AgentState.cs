@@ -1,5 +1,6 @@
 namespace LeadCalendar.Models;
 
+/*
 public struct AgentState
 {
     public int AgentId { get; init; }
@@ -86,3 +87,4 @@ public struct AgentState
         return AgentStateStatus.Incomplete;
     }
 }
+*/

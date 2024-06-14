@@ -11,7 +11,7 @@ using LeadCalendar.Models;
 2 | ❔ | ❔ | ❔ | ❔ | ❌ | ❔ | ❔ | ❔
 3 | ❌ | ❔ | ❔ | ❔ | ❔ | ❔ | ❔ | ❌
 4 | ❔ | ❔ | ❔ | ❔ | ❔ | ❔ | ❔ | ❌
-5 | ❔ | ❔ | ❔ | ❔ | ❔ | ❌ | ❔ | ❔
+5 | ❔ | ❔ | ❔ | ❔ | ❔ | ❌ | ❔ | ❌
  */
 var planner = new PlannerBuilder(5, 2, 2)
     .AddAgent("Anne", 1, 3)

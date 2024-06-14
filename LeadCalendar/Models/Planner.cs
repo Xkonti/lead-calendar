@@ -126,7 +126,7 @@ public class Planner
         
         // Advance state of the plan
         var plan = planResult.Value;
-        var agentId = plan.FrozenState.States.Length;
+        var agentId = plan.FrozenState.StatesCount;
         var newState = plan.FrozenState
             .AppendState(plan.SelectedCombination, CombinationsPerAgent[agentId].Combinations[plan.SelectedCombination]);
         

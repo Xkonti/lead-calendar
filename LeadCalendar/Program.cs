@@ -1,6 +1,7 @@
 ﻿// See https://aka.ms/new-console-template for more information
 
 using System.Diagnostics;
+using LeadCalendar;
 using LeadCalendar.Models;
 
 /*
@@ -34,7 +35,7 @@ Console.WriteLine();
 
 planner.CheckHasUnavoidableConflicts();
 
-const int iterationsPerMsg = 500000;
+const int iterationsPerMsg = 1000000;
 var sw = new Stopwatch();
 var measurements = new List<double>();
 
@@ -46,6 +47,7 @@ while (!hasFinished)
     if (iteration % iterationsPerMsg == 0)
     {
         sw.Restart();
+        planner.LimitPlans();
     }
     
     hasFinished = !planner.FindPlansLoopIteration();
@@ -77,3 +79,18 @@ Console.WriteLine($"Standard deviation percent: {stdDevPercent:0.00}%");
 var iterationAvg = total / iteration;
 Console.WriteLine($"Average iteration time: {(iterationAvg * 1000000):0.00} ns");
 
+
+Console.WriteLine("\n\n ===================");
+Console.WriteLine("====  SCORING  ====");
+Console.WriteLine("===================\n\n");
+
+var bestPlans = planner.ResultingPlans.SelectBest(5, planner.Scorer.CalculatePlanScore);
+
+var planIndex = 0;
+foreach (var plan in bestPlans)
+{
+    planIndex++;
+    Console.WriteLine($"Plan #{planIndex}:");
+    Console.WriteLine(plan.PresentAsList(planner.AgentNames, planner.CombinationsPerAgent));
+    Console.WriteLine();
+}

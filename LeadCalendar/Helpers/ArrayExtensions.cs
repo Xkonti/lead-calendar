@@ -37,4 +37,12 @@ public static class ArrayExtensions
         
         return newArray;
     }
+    
+    public static T[] Reverse<T>(this T[] array) {
+        for (var i = 0; i < array.Length / 2; i++) {
+            var j = array.Length - 1 - i;
+            (array[i], array[j]) = (array[j], array[i]);
+        }
+        return array;
+    }
 }

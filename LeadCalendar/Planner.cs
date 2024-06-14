@@ -1,6 +1,6 @@
 namespace LeadCalendar.Models;
 
-public class Planner
+public sealed class Planner
 {
     public byte WeeksCount { get; init; }
     public byte WeeksPerAgent { get; init; }
@@ -9,6 +9,8 @@ public class Planner
     public string[] AgentNames { get; init; }
     
     public AgentStateCombinations[] CombinationsPerAgent { get; init; }
+    
+    public Scorer Scorer { get; init; }
     
     /// <summary>
     /// Indexes of the first conflicting combination for each agent.
@@ -26,6 +28,18 @@ public class Planner
     private int _totalPlansCount = 0;
     private int _invalidPlansCount = 0;
     
+    public List<FrozenState> ResultingPlans
+    {
+        get
+        {
+            var result = new List<FrozenState>();
+            result.AddRange(_validPlans);
+            if (_validPlans.Count != 0) return result;
+            result.AddRange(_conflictingPlans);
+            return result;
+        }
+    }
+
     public Planner(
         byte weeksCount, byte weeksPerAgent, byte minAgentsPerWeek,
         string[] agentNames,
@@ -60,6 +74,8 @@ public class Planner
         AgentNames = agentNames;
         CombinationsPerAgent = combinationsPerAgent;
         FirstConflictIndexes = firstConflictIndexes;
+        
+        Scorer = new Scorer(CombinationsPerAgent);
         
         // Generate first possible plans
         for (byte combinationId = 0; combinationId < CombinationsPerAgent[0].Combinations.Length; combinationId++)
@@ -194,6 +210,19 @@ public class Planner
         return true;
     }
 
+    public void LimitPlans(int targetCount = 100)
+    {
+        if (_validPlans.Count > targetCount)
+        {
+            _validPlans = _validPlans.SelectBest(targetCount, Scorer.CalculatePlanDeviationScore).ToList();
+            _conflictingPlans = [];
+        }
+        
+        if (_conflictingPlans.Count > targetCount)
+        {
+            _conflictingPlans = _conflictingPlans.SelectBest(targetCount, Scorer.CalculatePlanScore).ToList();
+        }
+    }
 
     private PendingPlan? GetNextPlan()
     {

@@ -6,14 +6,16 @@ public class PlannerBuilder
 {
     private readonly int _weeksCount;
     private readonly int _weeksPerAgent;
+    private readonly int _minAgentsPerWeek;
     private List<string> _agentNames = [];
     private List<int[]> _excludedWeeksPerAgent = [];
     private List<int> _previousWeekAgentIds = [];
     
-    public PlannerBuilder(int weeksCount, int weeksPerAgent)
+    public PlannerBuilder(int weeksCount, int weeksPerAgent, int minAgentsPerWeek)
     {
         _weeksCount = weeksCount;
         _weeksPerAgent = weeksPerAgent;
+        _minAgentsPerWeek = minAgentsPerWeek;
     }
 
     public PlannerBuilder AddAgent(string name, params int[] excludedWeeks)
@@ -55,7 +57,7 @@ public class PlannerBuilder
         var agentStateCombinations = combinationsPerAgent.Select(c => new AgentStateCombinations { Combinations = c.ToArray() }).ToArray();
 
         return new Planner(
-            _weeksCount, _weeksPerAgent,
+            _weeksCount, _weeksPerAgent, _minAgentsPerWeek,
             _agentNames.ToArray(),
             agentStateCombinations,
             firstConflictIndexes.ToArray());

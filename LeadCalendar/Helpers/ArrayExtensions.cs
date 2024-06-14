@@ -39,18 +39,19 @@ public static class ArrayExtensions
     }
 
     /// <summary>
-    /// Increments the values in an array by one if the corresponding value in the other array is true.
+    /// Increments each week counter by one if the corresponding boolean from week selections is true.
+    /// The week selections array includes the week 0, so it needs to be skipped.
     /// </summary>
     /// <returns>The new array with the incremented values.</returns>
     /// <exception cref="ArgumentException">When the arrays are not the same length.</exception>
     public static int[] Increment(this int[] array, bool[] other)
     {
-        if (array.Length != other.Length)
+        if (array.Length != other.Length - 1)
             throw new ArgumentException("Arrays must have the same length");
         
         var newArray = (int[])array.Clone();
         for (var i = 0; i < array.Length; i++)
-            if (other[i]) newArray[i]++;
+            if (other[i+1]) newArray[i]++;
         
         return newArray;
     }

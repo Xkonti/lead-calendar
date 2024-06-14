@@ -4,6 +4,7 @@ public class Planner
 {
     public int WeeksCount { get; init; }
     public int WeeksPerAgent { get; init; }
+    public int MinAgentsPerWeek { get; init; }
     
     public string[] AgentNames { get; init; }
     
@@ -18,15 +19,15 @@ public class Planner
     private List<PendingPlan> _pendingValidPlans = [];
     private List<PendingPlan> _pendingConflictingPlans = [];
     
-    private List<PendingPlan> _validPlans = [];
-    private List<PendingPlan> _conflictingPlans = [];
+    private List<FrozenState> _validPlans = [];
+    private List<FrozenState> _conflictingPlans = [];
     
     // Stats
     private int _totalPlansCount = 0;
     private int _invalidPlansCount = 0;
     
     public Planner(
-        int weeksCount, int weeksPerAgent,
+        int weeksCount, int weeksPerAgent, int minAgentsPerWeek,
         string[] agentNames,
         AgentStateCombinations[] combinationsPerAgent,
         int[] firstConflictIndexes
@@ -55,9 +56,25 @@ public class Planner
         
         WeeksCount = weeksCount;
         WeeksPerAgent = weeksPerAgent;
+        MinAgentsPerWeek = minAgentsPerWeek;
         AgentNames = agentNames;
         CombinationsPerAgent = combinationsPerAgent;
         FirstConflictIndexes = firstConflictIndexes;
+        
+        // Generate first possible plans
+        for (var combinationId = 0; combinationId < CombinationsPerAgent[0].Combinations.Length; combinationId++)
+        {
+            var newPlan = new PendingPlan
+            {
+                FrozenState = new FrozenState(WeeksCount),
+                SelectedCombination = combinationId,
+            };
+            
+            var combination = CombinationsPerAgent[0].Combinations[combinationId];
+            if (!combination.HasConflict) _pendingValidPlans.Add(newPlan);
+            else _pendingConflictingPlans.Add(newPlan);
+            _totalPlansCount++;
+        }
     }
     
 
@@ -94,5 +111,105 @@ public class Planner
         
         Console.WriteLine($"Unavoidable conflicts detected for agents: {string.Join(", ", conflictingAgentNames)}");
         return true;
+    }
+
+    /// <summary>
+    /// Finds valid plans and updates the internal state.
+    /// </summary>
+    /// <returns>Returns false if there are no more iterations to take.</returns>
+    public bool FindPlansLoopIteration()
+    {
+        // Get next plan
+        var planResult = GetNextPlan();
+        if (planResult == null)
+            return false;
+        
+        // Advance state of the plan
+        var plan = planResult.Value;
+        var agentId = plan.FrozenState.States.Length;
+        var newState = plan.FrozenState
+            .AppendState(plan.SelectedCombination, CombinationsPerAgent[agentId].Combinations[plan.SelectedCombination]);
+        
+        // If plan is finished, add to appropriate list
+        if (agentId == AgentNames.Length - 1)
+        {
+            // Detect invalid plans vy verifying state week-wise
+            if (newState.SelectionsPerWeek.Any(selection => selection < MinAgentsPerWeek))
+            {
+                _invalidPlansCount++;
+                return true;
+            }
+            
+            if (!newState.HasConflict)
+            {
+                _validPlans.Add(newState);
+                return true;
+            }
+
+            // Ignore conflicting plans if there is a valid plan
+            if (_validPlans.Count == 0)
+            {
+                _conflictingPlans.Add(newState);
+            }
+            
+            return true;
+        }
+        
+        // The plan is not finished, generate next possible plans
+        
+        // Valid plans
+        var firstConflictIndex = FirstConflictIndexes[agentId + 1];
+        for (var combinationId = 0; combinationId < firstConflictIndex; combinationId++)
+        {
+            var nextPlan = new PendingPlan { FrozenState = newState, SelectedCombination = combinationId };
+            _pendingValidPlans.Add(nextPlan);
+            _totalPlansCount++;
+        }
+
+        // Optionally conflicting plans
+        if (_validPlans.Count != 0) return true;
+        var totalCombinations = CombinationsPerAgent[agentId + 1].Combinations.Length;
+        
+        // Full plans should be added to the valid queue to complete them asap
+        if (agentId + 1 == AgentNames.Length)
+        {
+            for (var combinationId = firstConflictIndex; combinationId < totalCombinations; combinationId++)
+            {
+                var nextPlan = new PendingPlan { FrozenState = newState, SelectedCombination = combinationId };
+                _pendingValidPlans.Add(nextPlan);
+                _totalPlansCount++;
+            }
+
+            return true;
+        }
+        
+        for (var combinationId = firstConflictIndex; combinationId < totalCombinations; combinationId++)
+        {
+            var nextPlan = new PendingPlan { FrozenState = newState, SelectedCombination = combinationId };
+            _pendingConflictingPlans.Add(nextPlan);
+            _totalPlansCount++;
+        }
+
+        return true;
+    }
+
+
+    private PendingPlan? GetNextPlan()
+    {
+        if (_pendingValidPlans.Count > 0)
+        {
+            var plan = _pendingValidPlans[_pendingValidPlans.Count - 1];
+            _pendingValidPlans.RemoveAt(_pendingValidPlans.Count - 1);
+            return plan;
+        }
+        
+        if (_pendingConflictingPlans.Count > 0)
+        {
+            var plan = _pendingConflictingPlans[_pendingConflictingPlans.Count - 1];
+            _pendingConflictingPlans.RemoveAt(_pendingConflictingPlans.Count - 1);
+            return plan;
+        }
+        
+        return null;
     }
 }

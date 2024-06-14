@@ -21,24 +21,6 @@ public static class ArrayExtensions
     }
 
     /// <summary>
-    /// Adds two arrays together.
-    /// Both arrays must have the same length.
-    /// </summary>
-    /// <returns>A new array with the sum of the two arrays.</returns>
-    /// <exception cref="ArgumentException">When the arrays are not the same length.</exception>
-    public static int[] Add(this int[] array, int[] other)
-    {
-        if (array.Length != other.Length)
-            throw new ArgumentException("Arrays must have the same length");
-        
-        var newArray = new int[array.Length];
-        for (var i = 0; i < array.Length; i++)
-            newArray[i] = array[i] + other[i];
-        
-        return newArray;
-    }
-
-    /// <summary>
     /// Increments each week counter by one if the corresponding boolean from week selections is true.
     /// The week selections array includes the week 0, so it needs to be skipped.
     /// </summary>

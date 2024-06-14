@@ -134,12 +134,13 @@ public class Planner
         if (agentId == AgentNames.Length - 1)
         {
             // Detect invalid plans vy verifying state week-wise
-            if (newState.SelectionsPerWeek.Any(selection => selection < MinAgentsPerWeek))
+            for (byte week = 0; week < newState.SelectionsPerWeek.Length; week++)
             {
+                if (newState.SelectionsPerWeek[week] >= MinAgentsPerWeek) continue;
                 _invalidPlansCount++;
                 return true;
             }
-            
+
             if (!newState.HasConflict)
             {
                 _validPlans.Add(newState);

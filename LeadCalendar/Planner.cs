@@ -1,3 +1,5 @@
+using LeadCalendar.Helpers;
+
 namespace LeadCalendar.Models;
 
 public sealed class Planner
@@ -210,16 +212,19 @@ public sealed class Planner
         return true;
     }
 
-    public void LimitPlans(int targetCount = 100)
+    public void LimitPlans(int targetCount = 1000)
     {
         if (_validPlans.Count > targetCount)
         {
+            _validPlans.Shuffle(); // Randomize the order so that we get some variety in results
             _validPlans = _validPlans.SelectBest(targetCount, Scorer.CalculatePlanDeviationScore).ToList();
-            _conflictingPlans = [];
+            if (_conflictingPlans.Count > 0) _conflictingPlans = [];
+            if (_pendingConflictingPlans.Count > 0) _pendingConflictingPlans = [];
         }
         
         if (_conflictingPlans.Count > targetCount)
         {
+            _conflictingPlans.Shuffle(); // Randomize the order so that we get some variety in results
             _conflictingPlans = _conflictingPlans.SelectBest(targetCount, Scorer.CalculatePlanScore).ToList();
         }
     }

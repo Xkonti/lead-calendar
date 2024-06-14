@@ -2,6 +2,8 @@ namespace LeadCalendar.Helpers;
 
 public static class ArrayExtensions
 {
+    private static readonly Random Rng = new();
+    
     /// <summary>
     /// Appends a new item to the end of an array in a performant way using Array.Copy.
     /// </summary>
@@ -44,5 +46,16 @@ public static class ArrayExtensions
             (array[i], array[j]) = (array[j], array[i]);
         }
         return array;
+    }
+
+    public static void Shuffle<T>(this IList<T> list)
+    {
+        var n = list.Count;
+        while (n > 1)
+        {
+            n--;
+            var k = Rng.Next(n + 1);
+            (list[k], list[n]) = (list[n], list[k]);
+        }
     }
 }

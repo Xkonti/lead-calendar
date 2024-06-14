@@ -2,9 +2,11 @@
 
 using System.Diagnostics;
 using LeadCalendar;
+using LeadCalendar.Helpers;
 using LeadCalendar.Models;
 
 /*
+Benchmark:
   | An | Bo | Ca | Da | Ev | Fr | Ge | Ha
 0 | ❔ | ❔ | ❔ | ✅ | ❔ | ❔ | ✅ | ✅
 --|----|----|----|----|----|----|----
@@ -13,7 +15,7 @@ using LeadCalendar.Models;
 3 | ❌ | ❔ | ❔ | ❔ | ❔ | ❔ | ❔ | ❌
 4 | ❔ | ❔ | ❔ | ❔ | ❔ | ❔ | ❔ | ❌
 5 | ❔ | ❔ | ❔ | ❔ | ❔ | ❌ | ❔ | ❌
- */
+
 var planner = new PlannerBuilder(5, 2, 2)
     .AddAgent("Anne", 1, 3)
     .AddAgent("Bob")
@@ -22,16 +24,28 @@ var planner = new PlannerBuilder(5, 2, 2)
     .AddAgent("Eve", 2, 1)
     .AddAgent("Frank", 5)
     .AddAgent("George")
-    .AddAgent("Harry", 3, 4, 5)
+    .AddAgent("Harry", 3, 4, 5) // Intentional conflict
     .AddAgent("Iris")
     .AddAgent("John")
     .AddAgent("Karin")
     .SetPreviousWeek("David", "George", "Harry")
     .Build();
-    
-Console.WriteLine("Initial plan:");
-//Console.Write(planner.GetCurrentPlan().PresentAsTable(planner));
-Console.WriteLine();
+ */
+
+var planner = new PlannerBuilder(5, 2, 2)
+    .AddAgent("Anne", 1, 3)
+    .AddAgent("Bob")
+    .AddAgent("Carol", 1)
+    .AddAgent("David")
+    .AddAgent("Eve", 2, 1)
+    .AddAgent("Frank", 5)
+    .AddAgent("George")
+    .AddAgent("Harry", 3, 4, 5) // Intentional conflict
+    .AddAgent("Iris")
+    .AddAgent("John")
+    .AddAgent("Karin")
+    .SetPreviousWeek("David", "George", "Harry")
+    .Build();
 
 planner.CheckHasUnavoidableConflicts();
 
@@ -64,6 +78,9 @@ while (!hasFinished)
     }
 }
 
+sw.Stop();
+measurements.Add(sw.Elapsed.TotalMilliseconds);
+
 Console.WriteLine("\n\nFinished after {0} iterations", iteration);
 planner.PrintStats();
 
@@ -84,13 +101,18 @@ Console.WriteLine("\n\n ===================");
 Console.WriteLine("====  SCORING  ====");
 Console.WriteLine("===================\n\n");
 
-var bestPlans = planner.ResultingPlans.SelectBest(5, planner.Scorer.CalculatePlanScore);
+var resultingPlans = planner.ResultingPlans;
+resultingPlans.Shuffle(); // Randomize the order so that we get some variety in results
+var bestPlans = resultingPlans.SelectBest(10, planner.Scorer.CalculatePlanScore);
 
 var planIndex = 0;
+var worstScore = 0;
 foreach (var plan in bestPlans)
 {
+    var planScore = planner.Scorer.CalculatePlanScore(plan);
+    if (planScore > worstScore) worstScore = planScore;
     planIndex++;
-    Console.WriteLine($"Plan #{planIndex}:");
+    Console.WriteLine($"Plan #{planIndex} ({worstScore - planner.Scorer.CalculatePlanScore(plan)}pts)");
     Console.WriteLine(plan.PresentAsList(planner.AgentNames, planner.CombinationsPerAgent));
     Console.WriteLine();
 }

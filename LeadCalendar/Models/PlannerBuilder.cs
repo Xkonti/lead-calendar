@@ -4,21 +4,21 @@ namespace LeadCalendar.Models;
 
 public class PlannerBuilder
 {
-    private readonly int _weeksCount;
-    private readonly int _weeksPerAgent;
-    private readonly int _minAgentsPerWeek;
+    private readonly byte _weeksCount;
+    private readonly byte _weeksPerAgent;
+    private readonly byte _minAgentsPerWeek;
     private List<string> _agentNames = [];
-    private List<int[]> _excludedWeeksPerAgent = [];
-    private List<int> _previousWeekAgentIds = [];
+    private List<byte[]> _excludedWeeksPerAgent = [];
+    private List<byte> _previousWeekAgentIds = [];
     
-    public PlannerBuilder(int weeksCount, int weeksPerAgent, int minAgentsPerWeek)
+    public PlannerBuilder(byte weeksCount, byte weeksPerAgent, byte minAgentsPerWeek)
     {
         _weeksCount = weeksCount;
         _weeksPerAgent = weeksPerAgent;
         _minAgentsPerWeek = minAgentsPerWeek;
     }
 
-    public PlannerBuilder AddAgent(string name, params int[] excludedWeeks)
+    public PlannerBuilder AddAgent(string name, params byte[] excludedWeeks)
     {
         _agentNames.Add(name);
         _excludedWeeksPerAgent.Add(excludedWeeks);
@@ -35,7 +35,7 @@ public class PlannerBuilder
                 throw new Exception($"Agent with name {agentName} not found");
             }
             
-            _previousWeekAgentIds.Add(agentId);
+            _previousWeekAgentIds.Add((byte)agentId);
         }
            
         return this;
@@ -45,9 +45,9 @@ public class PlannerBuilder
     {
 
         var combinationsPerAgent = new List<StateCombination[]>();
-        var firstConflictIndexes = new List<int>();
+        var firstConflictIndexes = new List<byte>();
 
-        for (var agentId = 0; agentId < _agentNames.Count; agentId++)
+        for (byte agentId = 0; agentId < _agentNames.Count; agentId++)
         {
             var (stateCombinations, firstConflictId) = GenerateStateCombinations(agentId);
             combinationsPerAgent.Add(stateCombinations);
@@ -63,11 +63,11 @@ public class PlannerBuilder
             firstConflictIndexes.ToArray());
     }
 
-    private int[] GetEmptyWeeks(int agentId)
+    private byte[] GetEmptyWeeks(byte agentId)
     {
         var excludedWeeks = _excludedWeeksPerAgent[agentId];
-        var emptyWeeks = new List<int>();
-        for (var weekIndex = 1; weekIndex <= _weeksCount; weekIndex++)
+        var emptyWeeks = new List<byte>();
+        for (byte weekIndex = 1; weekIndex <= _weeksCount; weekIndex++)
         {
             if (excludedWeeks.Contains(weekIndex)) continue;
             emptyWeeks.Add(weekIndex);
@@ -75,13 +75,13 @@ public class PlannerBuilder
         return emptyWeeks.ToArray();
     }
 
-    private (StateCombination[], int) GenerateStateCombinations(int agentId)
+    private (StateCombination[], byte) GenerateStateCombinations(byte agentId)
     {
         var emptyWeeks = GetEmptyWeeks(agentId);
         var combinations = CombinationsHelper.GenerateCombinations(emptyWeeks, _weeksPerAgent).ToArray();
         var stateCombinations = new List<StateCombination>();
         var initialState = CalculateInitialState(agentId);
-        var firstConflictIndex = 0;
+        byte firstConflictIndex = 0;
         foreach (var combination in combinations)
         {
             var stateCombination = ApplyCombination(initialState, combination.Weeks);
@@ -107,7 +107,7 @@ public class PlannerBuilder
     /// The initial state is an array of booleans, where each boolean represents a week.
     /// The boolean is true if the week is already booked (selected), and false if it's empty or excluded.
     /// </summary>
-    private bool[] CalculateInitialState(int agentId)
+    private bool[] CalculateInitialState(byte agentId)
     {
         var isInPreviousWeek = _previousWeekAgentIds.Contains(agentId);
         var state = new bool[_weeksCount + 1];
@@ -115,7 +115,7 @@ public class PlannerBuilder
         return state;
     }
 
-    private StateCombination ApplyCombination(bool[] initialState, int[] combination)
+    private StateCombination ApplyCombination(bool[] initialState, byte[] combination)
     {
         var state = (bool[])initialState.Clone();
         foreach (var combinationWeek in combination)
@@ -131,7 +131,7 @@ public class PlannerBuilder
     {
         // Check each week if it has conflict with previous week
         var previousWeek = state[0];
-        for (var week = 1; week <= _weeksCount; week++)
+        for (byte week = 1; week <= _weeksCount; week++)
         {
             if (state[week] && previousWeek)
             {

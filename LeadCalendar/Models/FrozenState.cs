@@ -2,11 +2,11 @@ using LeadCalendar.Helpers;
 
 namespace LeadCalendar.Models;
 
-public record FrozenState(int[] States, bool HasConflict, int[] SelectionsPerWeek)
+public record FrozenState(byte[] States, bool HasConflict, byte[] SelectionsPerWeek)
 {
-    public FrozenState(int weeksCount) : this([], false, new int[weeksCount]) {}
+    public FrozenState(byte weeksCount) : this([], false, new byte[weeksCount]) {}
     
-    public FrozenState AppendState(int stateCombinationId, StateCombination state)
+    public FrozenState AppendState(byte stateCombinationId, StateCombination state)
     {
         return new FrozenState(
             States.Append(stateCombinationId),

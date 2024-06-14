@@ -2,9 +2,9 @@ namespace LeadCalendar.Models;
 
 public class Planner
 {
-    public int WeeksCount { get; init; }
-    public int WeeksPerAgent { get; init; }
-    public int MinAgentsPerWeek { get; init; }
+    public byte WeeksCount { get; init; }
+    public byte WeeksPerAgent { get; init; }
+    public byte MinAgentsPerWeek { get; init; }
     
     public string[] AgentNames { get; init; }
     
@@ -14,7 +14,7 @@ public class Planner
     /// Indexes of the first conflicting combination for each agent.
     /// This is used to skip conflicting combinations when at least one valid plan has been found.
     /// </summary>
-    public int[] FirstConflictIndexes { get; init; }
+    public byte[] FirstConflictIndexes { get; init; }
 
     private List<PendingPlan> _pendingValidPlans = [];
     private List<PendingPlan> _pendingConflictingPlans = [];
@@ -27,10 +27,10 @@ public class Planner
     private int _invalidPlansCount = 0;
     
     public Planner(
-        int weeksCount, int weeksPerAgent, int minAgentsPerWeek,
+        byte weeksCount, byte weeksPerAgent, byte minAgentsPerWeek,
         string[] agentNames,
         AgentStateCombinations[] combinationsPerAgent,
-        int[] firstConflictIndexes
+        byte[] firstConflictIndexes
         )
     {
         // Verify agent state combinations
@@ -62,7 +62,7 @@ public class Planner
         FirstConflictIndexes = firstConflictIndexes;
         
         // Generate first possible plans
-        for (var combinationId = 0; combinationId < CombinationsPerAgent[0].Combinations.Length; combinationId++)
+        for (byte combinationId = 0; combinationId < CombinationsPerAgent[0].Combinations.Length; combinationId++)
         {
             var newPlan = new PendingPlan
             {
@@ -88,7 +88,7 @@ public class Planner
     {
         var conflictingAgentNames = new List<string>();
         
-        for (var agentId = 0; agentId < AgentNames.Length; agentId++)
+        for (byte agentId = 0; agentId < AgentNames.Length; agentId++)
         {
             Console.WriteLine($"Checking agent {AgentNames[agentId]}");
             var agentStateCombinations = CombinationsPerAgent[agentId];
@@ -159,7 +159,7 @@ public class Planner
         
         // Valid plans
         var firstConflictIndex = FirstConflictIndexes[agentId + 1];
-        for (var combinationId = 0; combinationId < firstConflictIndex; combinationId++)
+        for (byte combinationId = 0; combinationId < firstConflictIndex; combinationId++)
         {
             var nextPlan = new PendingPlan { FrozenState = newState, SelectedCombination = combinationId };
             _pendingValidPlans.Add(nextPlan);
@@ -173,7 +173,7 @@ public class Planner
         // Full plans should be added to the valid queue to complete them asap
         if (agentId + 1 == AgentNames.Length)
         {
-            for (var combinationId = firstConflictIndex; combinationId < totalCombinations; combinationId++)
+            for (byte combinationId = firstConflictIndex; combinationId < totalCombinations; combinationId++)
             {
                 var nextPlan = new PendingPlan { FrozenState = newState, SelectedCombination = combinationId };
                 _pendingValidPlans.Add(nextPlan);
@@ -183,7 +183,7 @@ public class Planner
             return true;
         }
         
-        for (var combinationId = firstConflictIndex; combinationId < totalCombinations; combinationId++)
+        for (byte combinationId = firstConflictIndex; combinationId < totalCombinations; combinationId++)
         {
             var nextPlan = new PendingPlan { FrozenState = newState, SelectedCombination = combinationId };
             _pendingConflictingPlans.Add(nextPlan);

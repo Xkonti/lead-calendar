@@ -14,5 +14,5 @@ public struct PendingPlan
     /// <summary>
     /// The state combination that is expected to be added to the plan.
     /// </summary>
-    public int SelectedCombination { get; init; }
+    public byte SelectedCombination { get; init; }
 }

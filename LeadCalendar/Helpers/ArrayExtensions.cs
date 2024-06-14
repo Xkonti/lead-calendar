@@ -44,12 +44,12 @@ public static class ArrayExtensions
     /// </summary>
     /// <returns>The new array with the incremented values.</returns>
     /// <exception cref="ArgumentException">When the arrays are not the same length.</exception>
-    public static int[] Increment(this int[] array, bool[] other)
+    public static byte[] Increment(this byte[] array, bool[] other)
     {
         if (array.Length != other.Length - 1)
             throw new ArgumentException("Arrays must have the same length");
         
-        var newArray = (int[])array.Clone();
+        var newArray = (byte[])array.Clone();
         for (var i = 0; i < array.Length; i++)
             if (other[i+1]) newArray[i]++;
         

@@ -1,6 +1,7 @@
 using LeadCalendar.Helpers;
+using LeadCalendar.Models;
 
-namespace LeadCalendar.Models;
+namespace LeadCalendar;
 
 public sealed class Planner
 {

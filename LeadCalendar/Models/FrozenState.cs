@@ -43,7 +43,7 @@ public sealed record FrozenState(
     {
         var sb = new StringBuilder();
         var states = this.GetStatePerAgent(combinationsPerAgent);
-        for (var weekId = 0; weekId < SelectionsPerWeek.Length; weekId++)
+        for (var weekId = 1; weekId <= SelectionsPerWeek.Length; weekId++)
         {
             sb.Append($"Week {weekId}: ");
             var assignedNames = new List<string>();

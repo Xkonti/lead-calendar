@@ -142,9 +142,9 @@ public sealed class Planner
         var planResult = GetNextPlan();
         if (planResult == null)
             return false;
+        var plan = planResult.Value;
         
         // Advance state of the plan
-        var plan = planResult.Value;
         var agentId = plan.FrozenState.StatesCount;
         var newState = plan.FrozenState
             .AppendState(plan.SelectedCombination, CombinationsPerAgent[agentId].Combinations[plan.SelectedCombination]);
@@ -152,7 +152,7 @@ public sealed class Planner
         // If plan is finished, add to appropriate list
         if (agentId == AgentNames.Length - 1)
         {
-            // Detect invalid plans vy verifying state week-wise
+            // Detect invalid plans by verifying state week-wise
             for (byte week = 0; week < newState.SelectionsPerWeek.Length; week++)
             {
                 if (newState.SelectionsPerWeek[week] >= MinAgentsPerWeek) continue;

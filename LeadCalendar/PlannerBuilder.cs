@@ -55,7 +55,8 @@ public class PlannerBuilder
             firstConflictIndexes.Add(firstConflictId);
         }
         
-        var agentStateCombinations = combinationsPerAgent.Select(c => new AgentStateCombinations { Combinations = c.ToArray() }).ToArray();
+        var agentStateCombinations = combinationsPerAgent
+            .Select(c => new AgentStateCombinations { Combinations = c.ToArray() }).ToArray();
 
         return new Planner(
             _weeksCount, _weeksPerAgent, _minAgentsPerWeek,

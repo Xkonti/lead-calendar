@@ -1,4 +1,4 @@
-// See https://aka.ms/new-console-template for more information
+﻿// See https://aka.ms/new-console-template for more information
 
 using System.Diagnostics;
 using LeadCalendar;
@@ -49,8 +49,8 @@ var planner = new PlannerBuilder(5, 2, 2)
 planner.CheckHasUnavoidableConflicts();
 
 const int iterationsPerMsg = 1000000;
-var sw = new Stopwatch();
 var measurements = new List<double>();
+var sw = new Stopwatch();
 
 var iteration = 0;
 var hasFinished = false;
@@ -60,7 +60,6 @@ while (!hasFinished)
     if (iteration % iterationsPerMsg == 0)
     {
         sw.Restart();
-        planner.LimitPlans();
     }
     
     hasFinished = !planner.FindPlansLoopIteration();
@@ -70,6 +69,7 @@ while (!hasFinished)
     iteration++;
     if (iteration % iterationsPerMsg == 0)
     {
+        //planner.LimitPlans();
         sw.Stop();
         measurements.Add(sw.Elapsed.TotalMilliseconds);
         Console.WriteLine("Iteration: {0}", iteration);
@@ -88,10 +88,6 @@ Console.WriteLine($"Average time per {iterationsPerMsg:0.00} iterations: {avg} m
 
 var total = measurements.Sum();
 Console.WriteLine($"Total time: {total:0.00} ms");
-var stdDev = Math.Sqrt(measurements.Average(x => Math.Pow(x - avg, 2)));
-Console.WriteLine($"Standard deviation: {stdDev:0.00} ms");
-var stdDevPercent = stdDev / avg * 100;
-Console.WriteLine($"Standard deviation percent: {stdDevPercent:0.00}%");
 var iterationAvg = total / iteration;
 Console.WriteLine($"Average iteration time: {(iterationAvg * 1000000):0.00} ns");
 

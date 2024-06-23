@@ -1,4 +1,4 @@
-import std/[deques, options, random, strutils, sequtils, sugar]
+import std/[deques, options, random, sequtils, sugar]
 import ./statecombination
 import ./frozenstate
 import ./pendingplan
@@ -66,28 +66,10 @@ proc newPlanner*(
     planner.scorer = newScorer(combinationsPerAgent)
     return planner
 
+
 proc printStats*(planner: Planner) =
     echo "TOT: ", planner.totalPlansCount, " INV: ", planner.invalidPlansCount, " CONF: ", planner.conflictingPlans.len, " VAL: ", planner.validPlans.len
     echo "In progress: ", planner.pendingValidPlans.len, " Conflicting: ", planner.pendingConflictingPlans.len
-
-proc checkHasUnavoidableConflicts*(planner: Planner) =
-    var conflictingAgentNames: seq[string] = @[]
-
-    for agentId in 0..<planner.agentNames.len:
-        let agentName = planner.agentNames[agentId]
-        echo "Checking agent ", agentName
-        let agentStateCombinations = planner.combinationsPerAgent[agentId]
-        let combinations = agentStateCombinations.combinations
-        for combination in combinations:
-            echo " - Has combination: ", combination
-        let hasConflictsOnly = combinations.allIt(it.hasConflict)
-        if hasConflictsOnly:
-            conflictingAgentNames.add(agentName)
-
-    if conflictingAgentNames.len == 0:
-        echo "No unavoidable conflicts detected"
-    else:
-        echo "Unavoidable conflicts detected for agents: ", conflictingAgentNames.join(", ")
 
 
 proc getNextPlan(planner: Planner): Option[PendingPlan] =
@@ -96,6 +78,7 @@ proc getNextPlan(planner: Planner): Option[PendingPlan] =
     if planner.pendingConflictingPlans.len > 0:
         return some(planner.pendingConflictingPlans.pop())
     return none(PendingPlan)
+
 
 proc findPlansLoopIteration*(planner: Planner): bool =
     ## Finds valid plans and updates the internal state.
@@ -170,6 +153,7 @@ proc findPlansLoopIteration*(planner: Planner): bool =
         inc planner.totalPlansCount
     
     return true
+
 
 proc selectBest*(plans: seq[FrozenState], targetCount: int, scorer: proc(plan: FrozenState): int): seq[FrozenState] =
     var resultList = newSeq[FrozenState](0).toDeque()

@@ -1,4 +1,4 @@
-import std/[math, random, stats, sugar, times, sequtils]
+import std/[math, random, stats, sugar, times]
 import ./plannerbuilder
 import ./frozenstate
 import ./planner
@@ -18,8 +18,6 @@ let thePlanner = newPlannerBuilder(5, 2, 2)
     .addAgent("Karin")
     .setPreviousWeek("David", "George", "Harry")
     .build()
-
-thePlanner.checkHasUnavoidableConflicts()
 
 const iterationsPerMsg = 1_000_000
 var measurements: seq[float] = @[]

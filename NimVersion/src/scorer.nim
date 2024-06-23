@@ -5,6 +5,7 @@ const conflictCountMultiplier = 10000
 const deviationMultiplier = 200
 const deviationAvgMultiplier = 100
 
+
 proc scoreCombination(combination: StateCombination): int =
     if not combination.hasConflict: return 0
     var conflictCount = 0
@@ -25,14 +26,17 @@ proc calculateCombinationScores(combinationsPerAgent: seq[AgentStateCombinations
         for combinationId in 0..<combinationsCount:
             result[agentId][combinationId] = combinationsPerAgent[agentId].combinations[combinationId].scoreCombination()
 
+
 type
     Scorer* = ref object
         combinationScoresPerAgent: seq[seq[int]] = @[]
+
 
 proc newScorer*(combinationsPerAgent: seq[AgentStateCombinations]): Scorer =
     return Scorer(
         combinationScoresPerAgent: calculateCombinationScores(combinationsPerAgent)
     )
+
 
 proc getCombinationScore(scorer: Scorer, agentIndex: int, combinationId: int): int =
     return scorer.combinationScoresPerAgent[agentIndex][combinationId]
@@ -68,4 +72,5 @@ proc calculatePlanDeviationScore*(scorer: Scorer, plan: FrozenState): int =
 proc calculatePlanScore*(scorer: Scorer, plan: FrozenState): int =
     let conflictScore = scorer.calculatePlanConflictScore(plan)
     let deviationScore = scorer.calculatePlanDeviationScore(plan)
+    # TODO: Add a penalty for multiple weeks with similar agents
     return conflictScore + deviationScore
